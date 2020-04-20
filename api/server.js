@@ -59,14 +59,20 @@ app.get('/api', function (req, res) {
 app.get('/api/:id', function (req, res) {
     db.open(function (err, mongloClient) {
         mongloClient.collection('postagens', function (err, collection) {
-            //collection.find(ObjectID(req.params.id)).toArray(function (err, result) {
+
+            if (collection == undefined){
+                res.status(404).json([]);
+                return;
+            }
+            //collection.find(ObjectID(req.params.id)).toArray(function (err, result) {            
             collection.find({ _id: ObjectID(req.params.id) }).toArray(function (err, result) {
                 if (err) {
-                    res.json(err);
+                    res.status(500).json(err);
                 } else {
-                    res.json(result);
-                }
+                    res.status(200).json(result);
+                }                
             });
+            
         });
         mongloClient.close();
     });
