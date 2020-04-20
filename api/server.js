@@ -42,8 +42,6 @@ app.post('/api', function (req, res) {
 });
 
 app.get('/api', function (req, res) {
-    var dados = req.body;
-
     db.open(function (err, mongloClient) {
         mongloClient.collection('postagens', function (err, collection) {
             collection.find().toArray(function (err, result) {
@@ -59,8 +57,6 @@ app.get('/api', function (req, res) {
 });
 
 app.get('/api/:id', function (req, res) {
-    var dados = req.body;
-
     db.open(function (err, mongloClient) {
         mongloClient.collection('postagens', function (err, collection) {
             //collection.find(ObjectID(req.params.id)).toArray(function (err, result) {
@@ -77,8 +73,6 @@ app.get('/api/:id', function (req, res) {
 });
 
 app.put('/api/:id', function (req, res) {
-    var dados = req.body;
-
     db.open(function (err, mongloClient) {
         mongloClient.collection('postagens', function (err, collection) {
             //collection.find(ObjectID(req.params.id)).toArray(function (err, result) {
@@ -94,6 +88,23 @@ app.put('/api/:id', function (req, res) {
                     }
                 }
             );
+        });
+        mongloClient.close();
+    });
+});
+
+app.delete('/api/:id', function (req, res) {
+    db.open(function (err, mongloClient) {
+        mongloClient.collection('postagens', function (err, collection) {
+            collection.remove(
+                { _id: ObjectID(req.params.id) },
+                function (err, result) {
+                    if (err) {
+                        res.json(err);
+                    } else {
+                        res.json(result);
+                    }
+                });
         });
         mongloClient.close();
     });
