@@ -1,12 +1,15 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var multiparty = require('connect-multiparty');
 var mongodb = require('mongodb');
 var ObjectID = require('mongodb').ObjectID;
+
 
 var app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(multiparty());
 
 var port = 8080;
 
@@ -25,6 +28,9 @@ app.get('/', function (req, res) {
 });
 
 app.post('/api', function (req, res) {
+    //res.setHeader('Access-Control-Allow-Origin','http://localhost/80');
+    res.setHeader('Access-Control-Allow-Origin','*');
+
     var dados = req.body;
 
     db.open(function (err, mongloClient) {
