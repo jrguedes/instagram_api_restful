@@ -47,7 +47,7 @@ app.post('/api', function (req, res) {
         }
 
         var dados = {
-            url_imgagem: url_imagem,
+            url_imagem: url_imagem,
             titulo: req.body.titulo
         }
         db.open(function (err, mongloClient) {
@@ -70,6 +70,8 @@ app.post('/api', function (req, res) {
 });
 
 app.get('/api', function (req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
     db.open(function (err, mongloClient) {
         mongloClient.collection('postagens', function (err, collection) {
             collection.find().toArray(function (err, result) {
@@ -85,6 +87,8 @@ app.get('/api', function (req, res) {
 });
 
 app.get('/api/:id', function (req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
     db.open(function (err, mongloClient) {
         mongloClient.collection('postagens', function (err, collection) {
 
@@ -103,6 +107,20 @@ app.get('/api/:id', function (req, res) {
 
         });
         mongloClient.close();
+    });
+});
+
+app.get('/imagens/:imagem', function(req, res){
+    var img = req.params.imagem;
+    fs.readFile('./uploads/' + img, function(err, content){
+        if (err){
+            res.status(400).json({err});
+            return;
+        }
+
+        res.writeHead(200, {'content-type': 'image/jpg'});
+        res.end(content);
+
     });
 });
 
