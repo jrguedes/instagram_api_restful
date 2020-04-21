@@ -12,6 +12,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(multiparty());
 
+//pra tratar o Preflight Request e Permissao de acesso
+// a API
+app.use(function (req, res, next) {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'content-type');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    next();
+});
+
 var port = 8080;
 
 app.listen(port);
@@ -30,7 +41,7 @@ app.get('/', function (req, res) {
 
 app.post('/api', function (req, res) {
     //res.setHeader('Access-Control-Allow-Origin','http://localhost/80');
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    //res.setHeader('Access-Control-Allow-Origin', '*');
 
     var date = new Date();
     var time_stamp = date.getTime();
@@ -38,7 +49,7 @@ app.post('/api', function (req, res) {
 
     var path_origem = req.files.arquivo.path;
     var path_destino = './uploads/' + url_imagem;
-    
+
 
     fs.rename(path_origem, path_destino, function (err) {
         if (err) {
@@ -70,7 +81,7 @@ app.post('/api', function (req, res) {
 });
 
 app.get('/api', function (req, res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    //res.setHeader('Access-Control-Allow-Origin', '*');
 
     db.open(function (err, mongloClient) {
         mongloClient.collection('postagens', function (err, collection) {
@@ -87,7 +98,7 @@ app.get('/api', function (req, res) {
 });
 
 app.get('/api/:id', function (req, res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    //res.setHeader('Access-Control-Allow-Origin', '*');
 
     db.open(function (err, mongloClient) {
         mongloClient.collection('postagens', function (err, collection) {
@@ -110,15 +121,15 @@ app.get('/api/:id', function (req, res) {
     });
 });
 
-app.get('/imagens/:imagem', function(req, res){
+app.get('/imagens/:imagem', function (req, res) {
     var img = req.params.imagem;
-    fs.readFile('./uploads/' + img, function(err, content){
-        if (err){
-            res.status(400).json({err});
+    fs.readFile('./uploads/' + img, function (err, content) {
+        if (err) {
+            res.status(400).json({ err });
             return;
         }
 
-        res.writeHead(200, {'content-type': 'image/jpg'});
+        res.writeHead(200, { 'content-type': 'image/jpg' });
         res.end(content);
 
     });
@@ -130,7 +141,15 @@ app.put('/api/:id', function (req, res) {
             //collection.find(ObjectID(req.params.id)).toArray(function (err, result) {
             collection.update(
                 { _id: ObjectID(req.params.id) },
-                { $set: { titulo: req.body.titulo } },
+                {
+                    $push:
+                    {
+                        comentarios: {
+                            id_comentario: new ObjectID(),
+                            comentario: req.body.comentario
+                        }
+                    }
+                },
                 { multi: false },
                 function (err, result) {
                     if (err) {
@@ -143,21 +162,31 @@ app.put('/api/:id', function (req, res) {
         });
         mongloClient.close();
     });
+
 });
 
 app.delete('/api/:id', function (req, res) {
+
+    //res.send(req.params.id);
+
+
     db.open(function (err, mongloClient) {
         mongloClient.collection('postagens', function (err, collection) {
-            collection.remove(
-                { _id: ObjectID(req.params.id) },
+            //collection.remove(
+            collection.update(
+                {},
+                { $pull: { comentarios: { id_comentario: ObjectID(req.params.id) } } },
+                { multi: true },
                 function (err, result) {
                     if (err) {
                         res.json(err);
                     } else {
                         res.json(result);
                     }
-                });
+                }
+            );
         });
         mongloClient.close();
     });
+
 });
